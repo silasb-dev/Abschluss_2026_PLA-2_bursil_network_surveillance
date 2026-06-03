@@ -21,7 +21,7 @@ Sammlung von Informationen über:
 - Welche Netzwerkdaten wichtig oder unwichtig für mein Projekt sind
 - Ob Realtime Überwachung möglich/sinnvoll ist
 
-1.  Prototyp erstellen
+2.  Prototyp erstellen
 Prototyp erstellen der folgende Funktionen beinhalten soll:
 - Nutzung eines ausgewählten Algorithmus
 - Daten aus einer PCAP Datei auslesen
@@ -29,7 +29,7 @@ Prototyp erstellen der folgende Funktionen beinhalten soll:
 - Mithilfe des Algorithmus erfolgreich C2 Verhalten erkennen
 - C2 Verhalten simulieren mit Scripts
 
-1. C2 Framework erkennen
+3. C2 Framework erkennen
 Ein verbesserter Prototyp erstellen:
 - Probleme und Engpässe beim alten Prototyp erkennen
 - Lösungen für die gefundenen Probleme erarbeiten und implementieren
