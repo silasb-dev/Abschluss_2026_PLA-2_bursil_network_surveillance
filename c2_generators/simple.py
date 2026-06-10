@@ -3,5 +3,5 @@ import time
 
 
 while True:
-    requests.get("https://example.com")
+    requests.get("http://shininggrandyoungday.neverssl.com/online/")
     time.sleep(15)

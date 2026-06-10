@@ -4,6 +4,6 @@ import random
 
 
 while True:
-    requests.get("https://example.com")
-    time.sleep(30+random.uniform(-5,+5))
+    requests.get("http://shininggrandyoungday.neverssl.com/online/")
+    time.sleep(30+random.uniform(-5,5))
 
