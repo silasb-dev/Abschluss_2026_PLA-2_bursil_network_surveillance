@@ -1,3 +1,14 @@
+#--------------------------------
+# Author: Silas Burkhard
+# Created: 26-06-10
+# Last Changed: 26-06-11
+# Description:
+# Main File to join
+# other files togheter.
+# extract features ->
+# calculate iso Forest ->
+# plot results
+#--------------------------------
 from algorithm import i_forest_t_test
 from parser import extract
 from visualize import show
@@ -12,12 +23,14 @@ FEATURE_LIST = ["bidirectional_first_seen_ms", "bidirectional_last_seen_ms", "bi
 
 print("Extracting...")
 st = time.time()
+# Extract Features and the id's of the malicious traffic
 data, m_id = extract.extractor(CAPTURE_FILE,m_traffic_u_agent=USER_AGENT)
 tt = round(time.time() - st,2)
 print(f"Duration: {tt}s")
 
 print("Isolating...")
 st = time.time()
+# Use isolation forest on the data
 data = i_forest_t_test.isolation_forest(data,FEATURE_LIST,contamination=0.05,experimental=True,n_estimators=100)
 tt = round(time.time() - st,2)
 print(f"Duration: {tt}s")
@@ -27,6 +40,7 @@ print(f"Duration: {tt}s")
 
 print("Showing...")
 st = time.time()
+# Visualize the data with matplotlib
 show.old_show(data,m_id)
 tt = round(time.time() - st,2)
 print(f"Duration: {tt}s")

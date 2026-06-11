@@ -59,10 +59,12 @@ mapping = {
 }
 df['protocol_id'] = df['application_name'].map(mapping)
 
+# Extract selected Features and Normalize Data
 x = df[numerical_features]
 x = StandardScaler().fit_transform(x)
 normalized = pd.DataFrame(x,columns=numerical_features)
 
+# Use either the PCA or t-SNE Algorithm for dimension reduction
 if ALGORYTHM=="PCA":
     pca = PCA(n_components=2)
     pca_learned = pca.fit_transform(x)
@@ -72,11 +74,12 @@ else:
     sne_learned = sne.fit_transform(x)
     comp_df = pd.DataFrame(data=sne_learned,columns=["comp1","comp2"])
 
+# Make color array for coloring the malicious Flows
 colors = ["grey"] * len(comp_df)
 for idx in malicious_id:
     colors[idx] = "red"
 
-
+# Visualize the Data with matplotlib
 print("Showing...")
 plt.scatter(comp_df["comp1"],comp_df["comp2"],c=colors)
 plt.show()

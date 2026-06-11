@@ -1,3 +1,12 @@
+#--------------------------------
+# Author: Silas Burkhard
+# Created: 26-06-11
+# Last Changed: 26-06-11
+# Description:
+# Calculates my main
+# Programm multiple times
+# and visualize the result
+#--------------------------------
 import main.test_1
 import matplotlib.pyplot as plt 
 
