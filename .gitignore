@@ -2,3 +2,5 @@
 *.pcap
 *.pcapng
 .venv/*
+*.csv
+*__pycache__*
