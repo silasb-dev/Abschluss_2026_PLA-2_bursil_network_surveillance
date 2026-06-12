@@ -13,19 +13,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Function to plot the given Dataframe with given Malicious Flows or Clusters
-def show(df: pd.DataFrame,m_ids=None,debug=False):
+def show(df: pd.DataFrame,m_ids=None,debug=False,show=True,v=True):
     # Index Anomalys for visualization
     df_anomaly = df[df["anomaly"] == -1].copy()
     anomaly_id = df_anomaly.index.to_list()
     anomaly_id = np.where(df.index.isin(anomaly_id))[0].tolist()
 
     # Update malicious id's to match positional id's
-    m_ids = df.index.get_loc(m_ids)
-    print(df.iloc[m_ids])
+    try:
+        m_ids = df.index.get_loc(m_ids)
+        if v:
+            print(df.iloc[m_ids])
+    except:
+        m_ids = None
+    
 
     # Coloring:              Grey is normal, Red is malicious, Blue is anomaly and Purple is both malicious and suggested anomaly
     colors = ["grey"] * len(df)
-    colors[m_ids] = "red"
+    if m_ids:
+        colors[m_ids] = "red"
     for i in anomaly_id:
         if colors[i] == "red":
             colors[i] = "purple"
@@ -42,14 +48,15 @@ def show(df: pd.DataFrame,m_ids=None,debug=False):
                 pass
 
     # Plot the data with the colors
-    plt.clf()
-    plt.scatter(df.index,df["anomaly_score"],c=colors)
-    try:
-        plt.show()
-    except:
-        pass
+    if show:
+        plt.clf()
+        plt.scatter(df.index,df["anomaly_score"],c=colors)
+        try:
+            plt.show()
+        except:
+            pass
 
-    return
+    return colors
 
 # Show Clusters
 def c_show(df,m_ids=None):

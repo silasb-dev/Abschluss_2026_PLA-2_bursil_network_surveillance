@@ -8,6 +8,7 @@
 # the results
 #--------------------------------
 
+import math
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import IsolationForest
@@ -16,15 +17,37 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 
 
+def calculate_density(d_points,c_points,c_id):
+    n_cluster = max(c_id)
+    cluster_density = []
+
+    
+
+    for cluster_id in range(n_cluster+1):
+        points = []
+        for i in range(len(d_points)):
+            if c_id[i] == cluster_id:
+                points.append(d_points[i])
+
+        distance = 0
+        for i in points:
+            distance += math.sqrt((i[0]-c_points[cluster_id][0])**2+(i[0]-c_points[cluster_id][0])**2)
+        distance = distance / len(points)
+        cluster_density.append(distance)
+
+    return cluster_density
+        
+
 # Isolation Forest Function, also extracts selected Features from DataFrame
 def isolation_forest(data:pd.DataFrame,features: list,n_estimators=100,contamination=0.01,sample_size=256,experimental=False,debug=False):
     # extract Features
+    features.append('density')
     df = data[features]
 
     # Use Isolation Forest on DataFrame
     iso_forest = IsolationForest(n_estimators=n_estimators,
                                 contamination=contamination,
-                                max_samples=sample_size,
+                                max_samples=len(df),
                                 random_state=42)
     iso_forest.fit(df)
 
@@ -36,6 +59,7 @@ def isolation_forest(data:pd.DataFrame,features: list,n_estimators=100,contamina
     # If in experimental mode, drop the row with the lowest anomaly score
     if experimental:
         o_df = o_df.drop(o_df["anomaly_score"].idxmin())
+
 
     # If in debug mode, enter a pseudo-shell to interact with the programm
     if debug:
@@ -50,7 +74,7 @@ def isolation_forest(data:pd.DataFrame,features: list,n_estimators=100,contamina
     return o_df
 
 # Process the Dataframe with t-SNE first, the give it to the Isolation Forest function
-def pre_process_i(data,features):
+def pre_process_i(data,features,v=True):
     # Extract wanted Features from DataFrame
     x = data[features]
     # Transform the DataFrame to a standardized format, for more equal computation between features
@@ -82,13 +106,13 @@ def kmeans(data,features):
     return o_df
     
 # Use t-sne then k-means to get stable clusters, then calculate mean and stddev for every feature of every Cluster and return those values 
-def combination(data,features,new=False,n_cluster=13,m_id=None):
+def combination(data,features,new=False,n_cluster=6,m_id=None,v=True):
     # Extract wanted Features from DataFrame
     x = data[features].copy()
     # Transform the DataFrame to a standardized format, for more equal computation between features
     x = StandardScaler().fit_transform(x)
     # Calculate t-sne with the dataframe, and save new DataFrame in variable sne_df
-    sne = TSNE(n_components=2)
+    sne = TSNE(n_components=2,perplexity=70,early_exaggeration=18)
     sne_learned = sne.fit_transform(x)
     sne_df = pd.DataFrame(data=sne_learned,columns=["comp1","comp2"])
 
@@ -110,6 +134,7 @@ def combination(data,features,new=False,n_cluster=13,m_id=None):
     # Calculate k-means clusters with the DataFrame
     km = KMeans(init="random",n_clusters=n_cluster,n_init=100,max_iter=1000)
     km.fit(y)
+
     
 
     # Copy the data to avoid Fragmentation, add cluster id's, reset the index values and sort them again
@@ -117,6 +142,8 @@ def combination(data,features,new=False,n_cluster=13,m_id=None):
     data['cluster'] = km.labels_ 
     data = data.reset_index(drop=True)
     data = data.sort_values("bidirectional_first_seen_ms")
+
+
     # This step is for selecting in which cluster the Maclicious traffic is. 5 is a manually chosen value and if there are no id's
     # i probably forgot to change the user agent for the determination of malicious traffic
     try:
@@ -124,6 +151,24 @@ def combination(data,features,new=False,n_cluster=13,m_id=None):
     except IndexError:
         print("No malicious ID found! Check your user agent")
         exit()
+    m_cluster_info = []
+
+    try:
+        import matplotlib.pyplot as plt
+        plt.clf()
+        colors = ["grey"] * len(sne_df)
+        for i in m_id:
+            colors[i] = "red"
+        c_data = y
+        c_data = [list(col) for col in zip(*c_data)]
+        plt.scatter(c_data[0],c_data[1],c=colors)
+        c_center = km.cluster_centers_
+        c_center = [list(col) for col in zip(*c_center)]
+        plt.scatter(c_center[0],c_center[1],color="green")
+        plt.show()
+    except KeyboardInterrupt:
+        pass
+    
     # Append the feature list by cluster, since it is now also a valid feature and extract all wanted features from the DataFrame
     features.append("cluster")
     data = data[features].copy()
@@ -133,6 +178,9 @@ def combination(data,features,new=False,n_cluster=13,m_id=None):
         c_df = pd.DataFrame()
         for c in range(n_cluster):
             cluster = data[data["cluster"] == c]
+            for i in cluster.index:
+                if i in m_id:
+                    m_cluster_info.append((c,i))
             cluster = cluster[["time_since_prev_flow","dst2src_max_ps","dst2src_stddev_ps","protocol_id","src2dst_stddev_ps","src2dst_max_ps"]].copy()
             mean = cluster.mean()
             stddev = cluster.std()
@@ -142,9 +190,10 @@ def combination(data,features,new=False,n_cluster=13,m_id=None):
         
         # Write data to output DataFrame
         data = c_df.copy()
+        data['density'] = calculate_density(y,km.cluster_centers_,km.labels_)
 
 
     # Return all computed Values
-    return data,mc_id
+    return data,mc_id,m_cluster_info
 
  
