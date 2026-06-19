@@ -18,7 +18,7 @@ import time
 
 def run():
     # PARAMETERS ######################################
-    CAPTURE_FILE = "../captures/sliver_90k.pcapng"
+    CAPTURE_FILE = "../captures/100k.pcapng"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.5205.266 Safari/537.36" # python-requests/2.34.2 python-requests/2.32.5
     FEATURE_LIST = ["time_since_prev_flow","dst2src_max_ps","dst2src_stddev_ps","protocol_id","src2dst_stddev_ps","src2dst_max_ps"]
     NEW_FEATURE_LIST = ["time_since_prev_flow_mean",

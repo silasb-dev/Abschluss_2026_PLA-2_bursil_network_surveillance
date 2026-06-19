@@ -1,13 +1,10 @@
 #--------------------------------
 # Author: Silas Burkhard
-# Created: 26-06-05
-# Last Changed: 26-06-05
+# Created: 26-06-18
+# Last Changed: 26-06-18
 # Description:
 # Loads a Wireshark capture file,
-# extract selected Features.
-# Optionaly get ID's of 
-# malicious Traffic
-# 
+# extract selected Features. 
 #--------------------------------
 
 import nfstream as nf
@@ -29,7 +26,7 @@ class PacketFlow(nf.NFPlugin):
 
 
 # Load Pcap File, calculate additional Features and return
-def extractor(file: str,m_traffic_u_agent=None,filter=True,dns=False):
+def extractor(file: str,filter=True,dns=False):
     # Load Capture file to pandas Dataframe
     stream = nf.NFStreamer(source=file,statistical_analysis=True,udps=PacketFlow())
     df = stream.to_pandas(columns_to_anonymize=())
@@ -43,20 +40,6 @@ def extractor(file: str,m_traffic_u_agent=None,filter=True,dns=False):
     df = df.reset_index(drop=True)
     df = df.sort_values("bidirectional_first_seen_ms")
     
-    # if the dns option is not set, use the user agent to confirm malicious traffic. if it is set, use the dst and src ip
-    if not dns:
-        if m_traffic_u_agent != None:
-            # Select malicious Traffic ID's
-            df1 = df[df["user_agent"] == m_traffic_u_agent].copy()
-            malicious_id = df1.index.to_list()
-            malicious_id = np.where(df.index.isin(malicious_id))[0].tolist()
-    else:
-        df1 = df[(df["src_ip"] == "1.1.1.1") | (df["dst_ip"] == "1.1.1.1")]
-        malicious_id = df1.index.to_list()
-        malicious_id = np.where(df.index.isin(malicious_id))[0].tolist()
-
-        print(df["src_ip"])
-        print(df1)
 
     # Add Feature bidirectional first seen
     group_cols = ["src_ip","dst_ip","dst_port","protocol"]
@@ -79,14 +62,11 @@ def extractor(file: str,m_traffic_u_agent=None,filter=True,dns=False):
 
 
 
-    # Return df and malicious traffic if wanted
-    if m_traffic_u_agent != None:
-        return df,malicious_id
-    else:
-        return df
+    # Return df
+    return df
 
 # Loads a csv file with flows. Is much more efficient than the extractor function  
-def l_file(file,m_traffic_u_agent=None,dns=False):
+def l_file(file):
     # Read csv file
     df = pd.read_csv("data.csv")
 
@@ -95,15 +75,4 @@ def l_file(file,m_traffic_u_agent=None,dns=False):
     df = df.sort_values("bidirectional_first_seen_ms")
 
     # If the user agent is set, use it to get the id's of malicious flows
-    if m_traffic_u_agent != None:
-        # Select malicious Traffic ID's
-        df1 = df[df["user_agent"] == m_traffic_u_agent].copy()
-        malicious_id = df1.index.to_list()
-        malicious_id = np.where(df.index.isin(malicious_id))[0].tolist()
-
-
-    # return the Dataframe and malicious id's if wanted
-    if m_traffic_u_agent != None:
-        return df,malicious_id
-    else:
-        return df   
+    return df   
