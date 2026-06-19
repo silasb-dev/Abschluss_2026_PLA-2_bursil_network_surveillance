@@ -15,7 +15,6 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
-from sklearn.cluster import DBSCAN, HDBSCAN
 
 
 def calculate_density(d_points,c_points,c_id):
@@ -65,8 +64,8 @@ def isolation_forest(data:pd.DataFrame,features: list,n_estimators=100,contamina
             try:
                 cmd = input("python>")
                 exec(cmd)
-            except Exception as e:
-                print(e)
+            except:
+                pass
  
     # return finalised DataFrame
     return o_df
@@ -104,8 +103,8 @@ def kmeans(data,features):
     return o_df
     
 # Use t-sne then k-means to get stable clusters, then calculate mean and stddev for every feature of every Cluster and return those values 
-def combination(data,features,new=False,n_cluster=10,m_id=None,v=True):
-    # Extract wanted Features from DataFrame 
+def combination(data,features,new=False,n_cluster=10,v=True):
+    # Extract wanted Features from DataFrame
     x = data[features].copy()
     # Transform the DataFrame to a standardized format, for more equal computation between features
     x = StandardScaler().fit_transform(x)
@@ -142,20 +141,11 @@ def combination(data,features,new=False,n_cluster=10,m_id=None,v=True):
     data = data.sort_values("bidirectional_first_seen_ms")
 
 
-    # This step is for selecting in which cluster the Maclicious traffic is. 5 is a manually chosen value and if there are no id's
-    # i probably forgot to change the user agent for the determination of malicious traffic
-    try:
-        mc_id = data.loc[m_id[5],"cluster"]
-    except IndexError:
-        print("No malicious ID found! Check your user agent")
-        exit()
-
-    try:
+    """ try:
         import matplotlib.pyplot as plt
         plt.clf()
         colors = ["grey"] * len(sne_df)
-        for i in m_id:
-            colors[i] = "red"
+
         c_data = y
         c_data = [list(col) for col in zip(*c_data)]
         plt.scatter(c_data[0],c_data[1],c=colors)
@@ -164,7 +154,7 @@ def combination(data,features,new=False,n_cluster=10,m_id=None,v=True):
         plt.scatter(c_center[0],c_center[1],color="green")
         plt.show()
     except KeyboardInterrupt:
-        pass
+        pass """
     
     # Append the feature list by cluster, since it is now also a valid feature and extract all wanted features from the DataFrame
     features.append("cluster")
@@ -195,98 +185,6 @@ def combination(data,features,new=False,n_cluster=10,m_id=None,v=True):
 
 
     # Return all computed Values
-    return return_data,mc_id,flow2cluster
+    return return_data,flow2cluster
 
-def hdb_combination(data,features,new=False,n_cluster=6,m_id=None,v=True):
-    # Extract wanted Features from DataFrame
-    x = data[features].copy()
-    # Transform the DataFrame to a standardized format, for more equal computation between features
-    x = StandardScaler().fit_transform(x)
-    # Calculate t-sne with the dataframe, and save new DataFrame in variable sne_df
-    sne = TSNE(n_components=2)
-    sne_learned = sne.fit_transform(x)
-    sne_df = pd.DataFrame(data=sne_learned,columns=["comp1","comp2"])
-
-    # Plot the data from t-sne for more insight
-    """ try:
-        import matplotlib.pyplot as plt
-        colors = ["grey"] * len(sne_df)
-        for i in m_id:
-            colors[i] = "red"
-        plt.scatter(sne_df["comp1"],sne_df["comp2"],c=colors)
-        plt.show()
-    except:
-        pass """
-
-
-    y = sne_df.copy()
-    # Transform the DataFrame to a standardized format, for more equal computation between features
-    y = StandardScaler().fit_transform(y)
-    # Calculate k-means clusters with the DataFrame
-    db = DBSCAN(eps=0.30)
-    db.fit(y)
-
-    print(db.labels_)
-
-    # Copy the data to avoid Fragmentation, add cluster id's, reset the index values and sort them again
-    data = data.copy()
-    data['cluster'] = db.labels_ 
-    data = data.reset_index(drop=True)
-    data = data.sort_values("bidirectional_first_seen_ms")
-
-
-    # This step is for selecting in which cluster the Maclicious traffic is. 5 is a manually chosen value and if there are no id's
-    # i probably forgot to change the user agent for the determination of malicious traffic
-    try:
-        mc_id = data.loc[m_id[5],"cluster"]
-    except IndexError:
-        print("No malicious ID found! Check your user agent")
-        exit()
-
-    try:
-        import matplotlib.pyplot as plt
-        plt.clf()
-        multi = ["blue","green","yellow","orange","brown","lime","purple","black"]
-
-        colors = ["grey"] * len(sne_df)
-        for ii,i in enumerate(db.labels_):
-            colors[ii] = multi[i]
-        #for i in m_id:
-        #    colors[i] = "red"
-        c_data = y
-        c_data = [list(col) for col in zip(*c_data)]
-        plt.scatter(c_data[0],c_data[1],c=colors)
-        plt.show()
-    except KeyboardInterrupt:
-        pass
-    
-    # Append the feature list by cluster, since it is now also a valid feature and extract all wanted features from the DataFrame
-    features.append("cluster")
-    data = data[features].copy()
-    
-    # Calculate the mean and stddev of every feature in every Cluster and add them to a DataFrame
-    if new:
-        c_df = pd.DataFrame()
-        for c in range(n_cluster):
-            cluster = data[data["cluster"] == c]
-            cluster = cluster[["time_since_prev_flow","dst2src_max_ps","dst2src_stddev_ps","protocol_id","src2dst_stddev_ps","src2dst_max_ps"]].copy()
-            mean = cluster.mean()
-            stddev = cluster.std()
-            for f in ["time_since_prev_flow","dst2src_max_ps","dst2src_stddev_ps","protocol_id","src2dst_stddev_ps","src2dst_max_ps"]:
-                c_df.loc[c,f+"_mean"] = mean[f]
-                c_df.loc[c,f+"_stddev"] = stddev[f]
-
-        print(c_df)
-        
-        # Write data to output DataFrame
-        return_data = c_df.copy()
-        #return_data['density'] = calculate_density(y,db.cluster_centers_,db.labels_)
-        
-
-        flow2cluster = []
-        for index,flow in enumerate(data["cluster"]):
-            flow2cluster.append((index,flow))
-
-
-    # Return all computed Values
-    return return_data,mc_id,flow2cluster
+ 

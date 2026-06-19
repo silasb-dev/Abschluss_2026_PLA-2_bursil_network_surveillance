@@ -39,20 +39,21 @@ def packet_return(suggested_df:pd.DataFrame,prognose):
     
     
 
-
+    print(prognose)
     packet_list = []
     for i in prognose:
         packet = ast.literal_eval(suggested_df.loc[i,"udps.packet_inf"])
         packet_list.append([list(x) for x in dict.fromkeys(map(tuple, packet))][0])
-    
+
     new_df = pd.DataFrame(columns=["packet_data"])
+    packet_list.sort()
     for packet in packet_list:
         new_df.at[len(new_df),"packet_data"] = packet
 
 
     new_df["Filter"] = new_df["packet_data"].apply(lambda x: f"ip.addr == {x[0]} && ip.addr == {x[1]} && tcp.port == {x[2]} && tcp.port == {x[3]}")
-
     new_df.to_excel("out.xlsx")
+    print("Saved to File: out.xlsx")
 
 def select_prognose(data_list,prognose):
     new_list = []
@@ -70,7 +71,7 @@ st = time.time()
 raw_data, m_id = extract.l_file(CAPTURE_FILE,m_traffic_u_agent=USER_AGENT)
 tt = round(time.time() - st,2)
 print(f"Duration: {tt}s")
-raw_data.to_csv("data.csv")
+raw_data.to_pkl("data.pkl")
 print("Isolating...")
 st = time.time()
 # Use t-sne and then k-means clustering for better analysis
@@ -87,7 +88,7 @@ print(f"Duration: {tt}s")
 print("Showing...")
 st = time.time()
 # Plot the Data with matplotlib
-_,prognose = show.show(data,mc_id,debug=False,experimental=True)
+_,prognose = show.show(data,mc_id,debug=False,experimental=False)
 tt = round(time.time() - st,2)
 print(f"Duration: {tt}s")
 

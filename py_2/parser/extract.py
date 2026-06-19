@@ -38,7 +38,7 @@ def extractor(file: str,filter=True,dns=False):
 
     # Reset the index and sort the dataframe again
     df = df.reset_index(drop=True)
-    df = df.sort_values("bidirectional_first_seen_ms")
+    df = df.sort_values("bidirectional_first_seen_ms",ignore_index=True)
     
 
     # Add Feature bidirectional first seen
@@ -61,14 +61,13 @@ def extractor(file: str,filter=True,dns=False):
     df['protocol_id'] = df['application_name'].map(mapping)
 
 
-
     # Return df
     return df
 
 # Loads a csv file with flows. Is much more efficient than the extractor function  
 def l_file(file):
     # Read csv file
-    df = pd.read_csv("data.csv")
+    df = pd.read_pickle("data.pkl")
 
     # reset index and sort rows
     df = df.reset_index(drop=True)
