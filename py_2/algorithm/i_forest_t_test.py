@@ -16,7 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 
-
+# Function to calculate Density of Cluster based on 2D Distance
 def calculate_density(d_points,c_points,c_id):
     n_cluster = max(c_id)
     cluster_density = []
@@ -44,11 +44,11 @@ def isolation_forest(data:pd.DataFrame,features: list,n_estimators=100,contamina
     features.append('density')
     df = data[features]
 
+    
     # Use Isolation Forest on DataFrame
     iso_forest = IsolationForest(n_estimators=n_estimators,
                                 contamination=contamination,
-                                max_samples=len(df),
-                                random_state=42)
+                                max_samples=len(df))
     iso_forest.fit(df)
 
     # Ensure Indexing is correct and add anomaly score and anomaly true/false to the output dataframe
@@ -138,7 +138,7 @@ def combination(data,features,new=False,n_cluster=10,v=True):
     data = data.copy()
     data['cluster'] = km.labels_ 
     data = data.reset_index(drop=True)
-    data = data.sort_values("bidirectional_first_seen_ms")
+    data = data.sort_values("bidirectional_first_seen_ms",ignore_index=True)
 
 
     try:
@@ -151,7 +151,8 @@ def combination(data,features,new=False,n_cluster=10,v=True):
         plt.scatter(c_data[0],c_data[1],c=colors)
         c_center = km.cluster_centers_
         c_center = [list(col) for col in zip(*c_center)]
-        plt.scatter(c_center[0],c_center[1],color="green")
+        for i in range(len(c_center[0])):
+            plt.scatter(c_center[0][i],c_center[1][i],color="green",marker="$"+str(i)+"$")
         plt.show()
     except KeyboardInterrupt:
         pass
@@ -178,11 +179,11 @@ def combination(data,features,new=False,n_cluster=10,v=True):
         return_data = c_df.copy()
         return_data['density'] = calculate_density(y,km.cluster_centers_,km.labels_)
         
-
+        # Create an Array with Correlation between Cluster and Flow
         flow2cluster = []
         for index,flow in enumerate(data["cluster"]):
             flow2cluster.append((index,flow))
-
+ 
 
     # Return all computed Values
     return return_data,flow2cluster

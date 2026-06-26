@@ -13,11 +13,13 @@ from algorithm import i_forest_t_test
 from parser import extract
 from visualize import show
 import pandas as pd
+import numpy as np
 import time
 import ast
 
 # PARAMETERS ######################################
-CAPTURE_FILE = "../captures/sliver_90k.pcapng"
+CAPTURE_FILE = "../captures/normal_25k.pcapng"
+USER_AGENT = "python-requests/2.32.5" # python-requests/2.34.2 python-requests/2.32.5 Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.5205.266 Safari/537.36
 FEATURE_LIST = ["time_since_prev_flow","dst2src_max_ps","dst2src_stddev_ps","protocol_id","src2dst_stddev_ps","src2dst_max_ps"]
 NEW_FEATURE_LIST = ["time_since_prev_flow_mean",
                     "dst2src_max_ps_mean",
@@ -26,29 +28,35 @@ NEW_FEATURE_LIST = ["time_since_prev_flow_mean",
                     "src2dst_stddev_ps_mean",
                     "src2dst_max_ps_mean"]
 ###################################################
+# Function to Flatten/Extend an Array. example: input [[1,10],[2,20]] output [1,10,2,20]
 def flatten_extend(matrix):
      flat_list = []
      for row in matrix:
          flat_list.extend(row)
      return flat_list
 
-
+# Function to produce a understandable output
 def packet_return(suggested_df:pd.DataFrame,prognose):
-    packet_list = []
     
+    
+    # Make sure that arrays are arrays and not strings and that there are no duplicates
+    print(prognose)
+    packet_list = []
     for i in prognose:
         packet = ast.literal_eval(suggested_df.loc[i,"udps.packet_inf"])
-        packet_list.append([list(x) for x in set(map(tuple, packet))][0])
-
+        packet_list.append([list(x) for x in dict.fromkeys(map(tuple, packet))][0])
+    # Prepare a new Dataframe with the processed Data
     new_df = pd.DataFrame(columns=["packet_data"])
     packet_list.sort()
     for packet in packet_list:
         new_df.at[len(new_df),"packet_data"] = packet
 
+    # Add Filter row to ouput and save in Excel
     new_df["Filter"] = new_df["packet_data"].apply(lambda x: f"ip.addr == {x[0]} && ip.addr == {x[1]} && tcp.port == {x[2]} && tcp.port == {x[3]}")
     new_df.to_excel("out.xlsx")
     print("Saved to File: out.xlsx")
 
+# Function tp select only prognosed clusters/flows
 def select_prognose(data_list,prognose):
     new_list = []
     for i in data_list:
@@ -62,14 +70,14 @@ def select_prognose(data_list,prognose):
 print("Extracting...")
 st = time.time()
 # Extract Features and the id's of the malicious traffic
-raw_data = extract.extractor(CAPTURE_FILE)
+raw_data, m_id = extract.extractor(CAPTURE_FILE,m_traffic_u_agent=USER_AGENT)
 tt = round(time.time() - st,2)
 print(f"Duration: {tt}s")
 raw_data.to_pickle("data.pkl")
 print("Isolating...")
 st = time.time()
 # Use t-sne and then k-means clustering for better analysis
-data,mc_info = i_forest_t_test.combination(raw_data,FEATURE_LIST,new=True)
+data,mc_id,mc_info = i_forest_t_test.combination(raw_data,FEATURE_LIST,new=True,m_id=m_id)
 FEATURE_LIST.append("cluster")
 # Use Isolation forest on the optimized data
 data = i_forest_t_test.isolation_forest(data,NEW_FEATURE_LIST,contamination=0.20,n_estimators=1000,debug=False)
@@ -77,16 +85,19 @@ tt = round(time.time() - st,2)
 print(f"Duration: {tt}s")
 
 
-
+ 
 
 print("Showing...")
 st = time.time()
 # Plot the Data with matplotlib
-_,prog = show.show(data,debug=False,experimental=True)
+_,prognose = show.show(data,mc_id,debug=False,experimental=False)
 tt = round(time.time() - st,2)
 print(f"Duration: {tt}s")
 
-prognose = select_prognose(mc_info,prog)
+# Get the Prognose into the correct Format
+prognose = select_prognose(mc_info,prognose)
 flat_prog = flatten_extend(prognose)[::2]
 
+
+# Save the Output
 packet_return(raw_data,flat_prog)

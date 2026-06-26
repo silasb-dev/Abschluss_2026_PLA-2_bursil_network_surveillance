@@ -17,7 +17,7 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN, HDBSCAN
 
-
+# Function to calculate Density of Cluster based on 2D Distance
 def calculate_density(d_points,c_points,c_id):
     n_cluster = max(c_id)
     cluster_density = []
@@ -48,8 +48,7 @@ def isolation_forest(data:pd.DataFrame,features: list,n_estimators=100,contamina
     # Use Isolation Forest on DataFrame
     iso_forest = IsolationForest(n_estimators=n_estimators,
                                 contamination=contamination,
-                                max_samples=len(df),
-                                random_state=42)
+                                max_samples=len(df))
     iso_forest.fit(df)
 
     # Ensure Indexing is correct and add anomaly score and anomaly true/false to the output dataframe
@@ -150,7 +149,7 @@ def combination(data,features,new=False,n_cluster=10,m_id=None,v=True):
         print("No malicious ID found! Check your user agent")
         exit()
 
-    try:
+    """ try:
         import matplotlib.pyplot as plt
         plt.clf()
         colors = ["grey"] * len(sne_df)
@@ -161,10 +160,11 @@ def combination(data,features,new=False,n_cluster=10,m_id=None,v=True):
         plt.scatter(c_data[0],c_data[1],c=colors)
         c_center = km.cluster_centers_
         c_center = [list(col) for col in zip(*c_center)]
-        plt.scatter(c_center[0],c_center[1],color="green")
+        for i in range(len(c_center[0])):
+            plt.scatter(c_center[0][i],c_center[1][i],color="green",marker="$"+str(i)+"$")
         plt.show()
     except KeyboardInterrupt:
-        pass
+        pass """
     
     # Append the feature list by cluster, since it is now also a valid feature and extract all wanted features from the DataFrame
     features.append("cluster")
@@ -188,7 +188,7 @@ def combination(data,features,new=False,n_cluster=10,m_id=None,v=True):
         return_data = c_df.copy()
         return_data['density'] = calculate_density(y,km.cluster_centers_,km.labels_)
         
-
+        # Create an Array with Correlation between Cluster and Flow
         flow2cluster = []
         for index,flow in enumerate(data["cluster"]):
             flow2cluster.append((index,flow))
@@ -197,6 +197,7 @@ def combination(data,features,new=False,n_cluster=10,m_id=None,v=True):
     # Return all computed Values
     return return_data,mc_id,flow2cluster
 
+# Combination function, but with the DBSCAN method instead of k-means clustering
 def hdb_combination(data,features,new=False,n_cluster=6,m_id=None,v=True):
     # Extract wanted Features from DataFrame
     x = data[features].copy()
@@ -243,7 +244,7 @@ def hdb_combination(data,features,new=False,n_cluster=6,m_id=None,v=True):
         print("No malicious ID found! Check your user agent")
         exit()
 
-    try:
+    """ try:
         import matplotlib.pyplot as plt
         plt.clf()
         multi = ["blue","green","yellow","orange","brown","lime","purple","black"]
@@ -258,7 +259,7 @@ def hdb_combination(data,features,new=False,n_cluster=6,m_id=None,v=True):
         plt.scatter(c_data[0],c_data[1],c=colors)
         plt.show()
     except KeyboardInterrupt:
-        pass
+        pass """
     
     # Append the feature list by cluster, since it is now also a valid feature and extract all wanted features from the DataFrame
     features.append("cluster")
@@ -282,7 +283,7 @@ def hdb_combination(data,features,new=False,n_cluster=6,m_id=None,v=True):
         return_data = c_df.copy()
         #return_data['density'] = calculate_density(y,db.cluster_centers_,db.labels_)
         
-
+        # Create an Array with Correlation between Cluster and Flow
         flow2cluster = []
         for index,flow in enumerate(data["cluster"]):
             flow2cluster.append((index,flow))

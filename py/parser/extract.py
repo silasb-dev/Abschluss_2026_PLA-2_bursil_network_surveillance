@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import ipaddress
 
+# Special Class to collect Packet Information with each Flow
 class PacketFlow(nf.NFPlugin):
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
@@ -88,7 +89,7 @@ def extractor(file: str,m_traffic_u_agent=None,filter=True,dns=False):
 # Loads a csv file with flows. Is much more efficient than the extractor function  
 def l_file(file,m_traffic_u_agent=None,dns=False):
     # Read csv file
-    df = pd.read_pkl("data.pkl")
+    df = pd.read_pickle("data.pkl")
 
     # reset index and sort rows
     df = df.reset_index(drop=True)

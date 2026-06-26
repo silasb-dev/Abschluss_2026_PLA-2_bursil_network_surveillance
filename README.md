@@ -46,7 +46,7 @@ Real-Time Detection implementieren
 ## Installation & Setup
 
 Da die NFStream Library nur auf Linux zuverlässig funktioniert, muss die folgende Anleitung unter Linux oder WSL in Windows ausgeführt werden.
-Wenn der Prototyp unter WSL genutzt werden möchte, muss man um Graphen anzeigen lassen einen X-Server installieren. Hier ist eine Anleitung Dazu.
+Wenn der Prototyp unter WSL genutzt werden möchte, muss man um Graphen anzeigen lassen einen X-Server installieren. (Hier)[https://www.kragskow.dev/posts/2022/06/blog-post-1/] ist eine Anleitung Dazu.
 Um den Prototyp zu nutzen, muss man zuerst den Source Code herunterladen:
 ```
 git clone https://github.com/silasb-dev/Abschluss_2026_PLA-2_bursil_network_surveillance.git
@@ -62,4 +62,5 @@ Jetzt kann man die Requirements installieren:
 pip install -r requirements.txt
 ```
 Im Ordner "py" befindet sich der Prototyp, der auch eine Überprüfungsmethode erwartet. Für generelle nutzung sollte der Prototyp im Ordner "py_2"
-genutzt werden. Um den zweiten Prototyp zu nutzten
+genutzt werden. Um den zweiten Prototyp zu nutzten, kann man die Datei test_1.py im Ordner py_2/main öffnen und die Variable CAPTURE_FILE auf den
+Pfad des zu untersuchenden Capture Files setzten. Danach kann man den Prototyp mit dem Befehl `python -m main.standalone_proto` ausführen, während man im Ordner py_2 ist.

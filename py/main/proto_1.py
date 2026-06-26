@@ -7,7 +7,7 @@
 # other files togheter.
 # extract features ->
 # calculate iso Forest ->
-# plot results
+# Return Data to analysis
 #--------------------------------
 from algorithm import i_forest_t_test
 from parser import extract
@@ -29,15 +29,15 @@ def run():
                         "src2dst_max_ps_mean"]
     ###################################################
     # Extract Features and the id's of the malicious traffic
-    data, m_id = extract.l_file(CAPTURE_FILE,m_traffic_u_agent=USER_AGENT)
+    data, m_id = extract.extractor(CAPTURE_FILE,m_traffic_u_agent=USER_AGENT)
     # Use t-sne and then k-means clustering for better analysis
     data,mc_id,mc_info = i_forest_t_test.combination(data,FEATURE_LIST,new=True,m_id=m_id)
     #print(mc_info)
     FEATURE_LIST.append("cluster")
     # Use Isolation forest on the optimized data
-    data = i_forest_t_test.isolation_forest(data,NEW_FEATURE_LIST,contamination=0.33,experimental=True,n_estimators=1000,debug=False)
+    data = i_forest_t_test.isolation_forest(data,NEW_FEATURE_LIST,contamination=0.20,n_estimators=1000,debug=False)
 
     # Plot the Data with matplotlib
-    cresult,_ = show.show(data,mc_id,debug=False,show=False,v=False)
+    cresult,_ = show.show(data,mc_id,debug=False,show=False,v=False,experimental=True)
 
     return cresult

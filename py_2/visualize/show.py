@@ -19,7 +19,6 @@ def show(df: pd.DataFrame,debug=False,show=True,v=True,experimental=False):
     anomaly_id = df_anomaly.index.to_list()
     anomaly_id = np.where(df.index.isin(anomaly_id))[0].tolist()
 
-
     
     prognose = []
 
@@ -30,8 +29,11 @@ def show(df: pd.DataFrame,debug=False,show=True,v=True,experimental=False):
     colors = ["grey"] * len(df)
 
     for i in anomaly_id:
-        if df.loc[i,"ignored"] == 1:
-            continue
+        try:
+            if df.loc[i,"ignored"] == 1:
+                continue
+        except KeyError:
+            pass
         prognose.append(i)
         colors[i] = "blue"
 

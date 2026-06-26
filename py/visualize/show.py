@@ -36,10 +36,11 @@ def show(df: pd.DataFrame,m_ids=None,debug=False,show=True,v=True,experimental=F
     colors = ["grey"] * len(df)
     if m_ids:
         colors[m_ids] = "red"
+    prognose.append(m_ids)
     for i in anomaly_id:
         if experimental and df.loc[i,"ignored"] == 1:
             continue
-        prognose.append(i)
+        #prognose.append(i)
         if colors[i] == "red":
             colors[i] = "purple"
         else:

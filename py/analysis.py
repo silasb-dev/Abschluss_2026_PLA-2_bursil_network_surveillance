@@ -10,6 +10,7 @@
 import main.proto_1
 import matplotlib.pyplot as plt 
 
+# Initialize Variables
 f_positive = 0
 f_negative = 0
 correct = 0
@@ -19,6 +20,7 @@ i = 0
 
 
 while i < n_runs:
+    # Run the Prototype and store the results
     result = main.proto_1.run()
     correct += result.count("purple")
     f_positive += result.count("blue")
@@ -26,6 +28,6 @@ while i < n_runs:
     i += 1
     print(f"Round {i} done")
 
-
+# Plot the Results
 plt.bar(["Correct","False Positive","False Negative"],[correct,f_positive,f_negative])
 plt.show()
